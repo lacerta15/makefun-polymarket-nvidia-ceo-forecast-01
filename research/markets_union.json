@@ -1,0 +1,148 @@
+{
+  "markets": {
+    "0xa82699004214aa3f755ede5d9e6d5c4850e3f69ec821a3b15433a1bd6a3a19aa": {
+      "yes_token": "103008858512874391365224101227560355649163684508142667207968746328052141056510",
+      "name": "Colette Kress",
+      "slug": "will-colette-kress-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-10T02:35:00.000Z"
+    },
+    "0xf74c2c32764c1c30ae9fec8ff310af9f43b6bd3683dac58b9b9bb913ad7fffea": {
+      "yes_token": "77072457698361216009065279904800760032167635165202201414975392496461161144562",
+      "name": "Jay Puri",
+      "slug": "will-jay-puri-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-10T02:35:00.000Z"
+    },
+    "0xa0afeccf72356d88deb62e63eb21ca44949d55f9c4d0a0d7bc1ff604751caf1e": {
+      "yes_token": "27537762517171057455258513602853596157541922888874500382650988541957420239685",
+      "name": "Madison Huang",
+      "slug": "will-madison-huang-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-10T02:35:00.000Z"
+    },
+    "0x9913e01540453df27e7ca2182c0b2a9ce4de099d7cf7d4397bd80a3832916400": {
+      "yes_token": "100091405604479009577545407351733858202038220036360444570103867025767863439226",
+      "name": "Bill Dally",
+      "slug": "will-bill-dally-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-10T02:35:00.000Z"
+    },
+    "0x3c6918f6944f05883477c01f0f4380a63096e8e11f00c11595ac1aa1294c3358": {
+      "yes_token": "32118842341354947485616500459972589369892320137286901149895395677583693692640",
+      "name": "Debora Shoquist",
+      "slug": "will-debora-shoquist-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-10T02:35:00.000Z"
+    },
+    "0xf282298236c2b9a66d6f7ca7cd17a23969ebba9d93b818210090d7add5f4a83c": {
+      "yes_token": "86260325599901491772814676948376018416592169411334886593936637916887506029606",
+      "name": "Lisa Su",
+      "slug": "will-lisa-su-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-10T02:35:00.000Z"
+    },
+    "0xfe28d93c0729d1e099a0359caaf1277e4e6560034c2e3900d65921515f467282": {
+      "yes_token": "30917853047681848974124763406524368436482316036542704956055886396093348090575",
+      "name": "Jensen Huang (No Change)",
+      "slug": "will-candidate-a-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-11T23:14:00.000Z"
+    },
+    "0xd940515f5526f103b1aa4d3b297792d22ee82c24953c5e2ad3ae9687403f7f00": {
+      "yes_token": "99229860408944522254879554396438469667542967403476665734798833722418006527513",
+      "name": "Ian Buck",
+      "slug": "will-ian-buck-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-11T23:26:00.000Z"
+    },
+    "0xf24ee57d6ca0020518692e737764f8553f110554fb6c634614ba694c5510dcc4": {
+      "yes_token": "976953775905673374771641133902127122304877960747347753463106077472239970446",
+      "name": "Rene Haas",
+      "slug": "will-rene-haas-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-11T23:26:00.000Z"
+    },
+    "0x1d956daa1a57a0fde801ec275307881fa580e32453378629980dc9850b453a95": {
+      "yes_token": "89057227939451038311813063714111076297199850168778332806084420346935808570131",
+      "name": "Hock Tan",
+      "slug": "will-hock-tan-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-11T23:26:00.000Z"
+    },
+    "0xa162fa01bb8ef9e25614f7d0a04e64cbf15f0c70bd3d0fc5d15b2fa892e0f470": {
+      "yes_token": "17581275836247055354011005022179888278206486834961790066984149921547406342621",
+      "name": "Spencer Huang",
+      "slug": "will-spencer-huang-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-11T23:26:00.000Z"
+    },
+    "0x874b4a0617d6a44e28e57a513987cb63d8eb5d8d50105059749ba3118fbe7f37": {
+      "yes_token": "7111611135262717399618118446205452104119916207683554378838336605786939574142",
+      "name": "Nico Caprez",
+      "slug": "will-nico-caprez-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-11T23:26:00.000Z"
+    },
+    "0x9ae0d7b8addd0acab7a762583f19b84869e707a32b52192216ad3cf5897d5eac": {
+      "yes_token": "96407475450282998468638528638984116446789405998610250662704395929617078571262",
+      "name": "Thomas Kurian",
+      "slug": "will-thomas-kurian-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-11T23:26:00.000Z"
+    },
+    "0xddab1a21931237345f33cdf4ac90351be6c864bce02f1d39a1f8e30630e7b615": {
+      "yes_token": "105057627896619683103283754514940555404855637590926663013701840899622822498759",
+      "name": "Matt Garman",
+      "slug": "will-matt-garman-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-11T23:26:00.000Z"
+    },
+    "0x475196360677530c2d57cc95e1cf3276fa4afc0ce5dcdd14ad0ec23b1fc6ff7f": {
+      "yes_token": "29175480361097347890908030137259668503228754609186403068860747314765146420569",
+      "name": "Pat Gelsinger",
+      "slug": "will-pat-gelsinger-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-11T23:26:00.000Z"
+    },
+    "0x497f156c5795aa461dda8818084550277bcf85e6686d5ad354f025a6034fe83a": {
+      "yes_token": "28370960505682824103605937424388639291592399536483151997793146721038304997901",
+      "name": "Chris Malachowsky",
+      "slug": "will-chris-malachowsky-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-11T23:26:00.000Z"
+    },
+    "0xd54c5a8a7a36512ce3b310cc97ac146e0f3ea74b8eadfd3f823459a39f3e2819": {
+      "yes_token": "26432933494890407616968692984916275271773545031284000628438576701566172145648",
+      "name": "Eric Schmidt",
+      "slug": "will-eric-schmidt-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-11T23:26:00.000Z"
+    },
+    "0xea85b51786537d4b608e7420ec9938f640f03a75b0564c2d78e82c5ffa0f91e8": {
+      "yes_token": "4219020054432518897344525616264355446778242657513493190112866506803376943890",
+      "name": "Michael Kagan",
+      "slug": "will-michael-kagan-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-11T23:26:00.000Z"
+    },
+    "0x4c12a732cd77165089070051dcecced7be15feaf8aa284d908744dbbf88af357": {
+      "yes_token": "105925447945837142130706866727433195199081341603220693565614511746358314487673",
+      "name": "Jonah Alben",
+      "slug": "will-jonah-alben-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-11T23:26:00.000Z"
+    },
+    "0x4c3844f8716850ebdad01ff02ca7cf798a99e99c468d6bdd1aff19b42dd56401": {
+      "yes_token": "8995928971215954888204209222791482521422003278481795754183554141578292037715",
+      "name": "Tim Cook",
+      "slug": "will-tim-cook-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-12T15:46:00.000Z"
+    },
+    "0x65345fc617268fc8a42937c1eea92c18bf8bdce76e9e503c34fe94f18d67acac": {
+      "yes_token": "65088006550266328308693760424273879167775167902076020551392948027280189322720",
+      "name": "Johny Srouji",
+      "slug": "will-johny-srouji-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-12T17:41:00.000Z"
+    },
+    "0x770f4fb78a642e47e0df450503f5150623ad4a54ab308bc9ae3b149d9b43759c": {
+      "yes_token": "54828374309230587651517837698811590908835402260787504189028714408441347324858",
+      "name": "Nikesh Arora",
+      "slug": "will-nikesh-arora-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-12T17:42:00.000Z"
+    },
+    "0x9f4d7751fc43e881bb4f90e85a29fba5b58633aad4e2b3d1e98e867e7ff41932": {
+      "yes_token": "58757642908803159417898929432710159156064477021663558316240892862051141743648",
+      "name": "Nick Parker",
+      "slug": "will-nick-parker-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-12T17:42:00.000Z"
+    },
+    "0x0ddf9ce5b763637a84564146d912355d3703c91c5d01e8de1ea84b133d3064ec": {
+      "yes_token": "46214186848391265116337074440748071534402948650053986185740895102071513330963",
+      "name": "Curtis Priem",
+      "slug": "will-curtis-priem-be-the-next-ceo-of-nvidia",
+      "start": "2026-11-12T18:23:00.000Z"
+    }
+  }
+}

@@ -21,7 +21,9 @@ instead of symmetric bands that a raw-price model has to clamp (silently discard
 probability mass on the clamped side). On top of that per-market diffusion (round 1),
 round 2 adds a cross-market sum-to-one shrinkage term: every market's starting price
 is nudged toward the value that would make the whole case's prices sum to 1, before
-diffusing it forward.
+diffusing it forward. Round 3 adds two further, deliberately-damped corrections: a
+level-dependent skew of the quantile shape, and an asymmetric short-term
+reversal/momentum drift.
 
 ```
 S0       = sum of every market's last price in the case (the checkpoint)
@@ -32,8 +34,12 @@ z0       = logit(x_adj)
 sigma1   = std. dev. of 1-minute logit-price differences over the market's own
            trailing 180 minutes of *unadjusted* history (or everything it has, if
            shorter), floored at 0.03 and capped at 1.2
+lag      = z[now] - z[now - 45]         (own unadjusted 45-minute logit move)
+center(h)= z0 - 0.03 * max(0, lag) * h ** 0.30     (asymmetric reversal drift)
+gamma    = clamp(0.10 - 1.40 * x_adj, -0.35, 0.35)       (level-dependent skew)
 spread(h)= sigma1 * h ** 0.30          (h = minutes ahead, 1..240)
-q_tau(h) = clamp(inv_logit(z0 + Phi^-1(tau) * spread(h)), 0, 1), rounded to 6dp
+d_tau(h) = Phi^-1(tau) * spread(h), widened by (1+gamma) if >=0 else (1-gamma)
+q_tau(h) = clamp(inv_logit(center(h) + d_tau(h)), 0, 1), rounded to 6dp
 ```
 
 **Cross-market term (round 2).** This event's markets are an (incomplete) subset
@@ -79,16 +85,55 @@ median of markets' own (unfloored) realized sigma, which is itself evidence it's
 sensible shrinkage prior for markets whose short window just happened to be quiet,
 not an arbitrary constant.
 
-A small drift term and inflated ("fat-tailed") extreme quantiles were both tried and
-both made the backtested loss worse on average, so neither is used — pinball loss is
-a proper scoring rule, and widening or skewing a forecast the data doesn't support is
-a net loss, not a free hedge.
+A level-independent drift term and a flat fat-tail multiplier were both tried in
+round 1/2 and made the backtested loss worse on average there — pinball loss is a
+proper scoring rule, and widening or skewing a forecast the data doesn't support is
+a net loss, not a free hedge. Round 3 revisits both ideas, but grounded in direct
+measurement instead of guessing a shape:
+
+**Level-dependent skew.** `research/skew_reversal_analysis.py` partitions 1-minute
+logit-price diffs (pooled over all 6 practice cases' markets) by the *starting price
+level*: markets below about 0.15 show strong, robust (same sign in every one of the
+6 practice cases checked individually) *positive* skew — rare large up-jumps are more
+extreme than rare large down-moves — while markets from about 0.15 to 0.5 show
+equally robust *negative* skew, growing with price level. There is almost no practice
+data above ~0.6 (these are long-shot-heavy candidate markets), so the skew factor
+`gamma` is capped at 0.35 to avoid extrapolating with false confidence into a price
+region we have never observed — the same clamping discipline round 2 used for `k0`.
+
+**Short-term reversal.** The same file measures the correlation between a market's
+recent L-minute logit move and its subsequent move: consistently negative (~-0.15 to
+-0.30) across many lookback/horizon combinations, and — unlike a transient bounce —
+it does not decay away over the full 4-hour forecast horizon. It is also clearly
+asymmetric: large recent *upward* moves predict strong reversion; large recent
+*downward* moves predict almost none, so the drift term only fires on `max(0, lag)`.
+The 6 practice cases are checkpoints exactly 4 hours apart on *one* continuous price
+history (same event, same start timestamp), so their pre-checkpoint windows overlap
+almost entirely — a leave-one-case-out check here (`research/loco3.py`) is weaker
+evidence of generalization than round 2's cross-market lambda had, and the raw
+backtest-optimal region (lookback ~120-150 minutes, alpha ~0.06-0.08) turned out to
+be noticeably less stable across held-out cases (it meaningfully hurt 2 of the 6)
+than the damped values actually shipped (lookback=45, alpha=0.03), which improve 5 of
+6 practice cases and only barely touch the 6th.
+
+A third candidate — modeling the point-mass-at-"no change" structure explicitly as a
+zero-inflation mixture on top of the continuous logit-diffusion — was investigated in
+`research/zero_inflation_analysis.py` and is real: pooled across the practice
+markets' own history, P(price unchanged) falls from ~0.88 at h=1 minute to ~0.12 at
+h=240 minutes, and the post-checkpoint realized ground truth confirms the same shape.
+But explicitly mixing a point mass into the quantile formula, calibrated per-market
+and decayed with a globally-fit power law, was only *neutral* under leave-one-case-out
+testing (3 of 6 held-out cases improved, 3 worsened, near-zero mean effect) — the
+existing sub-diffusion exponent already captures this structure about as well on its
+own, so the mixture was not shipped (see `research/models_round3.py` /
+`research/run_sweep3.py` / `research/loco3.py` for the full comparison).
 
 Backtested against real Polymarket price history fetched for the six practice cases
-(p00-p05), this model scores a mean pinball loss of **0.265667** — **26.93%** better
-than the house's constant-sigma random-walk baseline (0.363589), and **2.5%** better
-than round 1's 0.272584 (which already matched make.fun's live grader exactly) — on
-the same ground truth.
+(p00-p05), this model scores a mean pinball loss of **0.258945** — **28.78%** better
+than the house's constant-sigma random-walk baseline (0.363589), **2.53%** better than
+round 2's 0.265667 (confirmed live on make.fun's grader twice, exactly matching the
+offline backtest both times), and **5.0%** better than round 1's 0.272584 — on the
+same ground truth.
 
 ## Run it
 

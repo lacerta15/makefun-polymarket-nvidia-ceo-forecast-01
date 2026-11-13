@@ -1,1 +1,1 @@
-Per-market logit-space sub-diffusive vol forecaster (h^0.3, not h^0.5) plus a damped cross-market sum-to-one shrinkage that nudges each market's starting price toward its case-wide renormalized value, backtested rather than forced to a full normalization.
+Per-market logit-space sub-diffusive vol forecaster (h^0.3, not h^0.5) with a damped cross-market sum-to-one shrinkage, a level-dependent quantile skew, and an asymmetric short-term reversal drift -- each new term backtested and leave-one-case-out checked against real fetched Polymarket history, not assumed.

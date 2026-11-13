@@ -1,12 +1,14 @@
 """
-polymarket-nvidia-ceo-forecast-01 entry (round 2).
+polymarket-nvidia-ceo-forecast-01 entry (round 3).
 
 Forecasts the Yes price of every market of Polymarket's "Next CEO of NVIDIA?" event,
 minute by minute, for horizon_minutes (240) minutes after each case's checkpoint.
 
 Model: logit-space sub-diffusive random walk with a per-market realized-volatility
-estimate (round 1), plus a cross-market sum-to-one shrinkage adjustment (round 2)
-applied to each market's starting price before the per-market diffusion.
+estimate (round 1), a cross-market sum-to-one shrinkage adjustment (round 2) applied
+to each market's starting price before the per-market diffusion, and two further
+empirically-grounded, deliberately-damped corrections (round 3): a level-dependent
+skew on the quantile shape, and an asymmetric short-term momentum/reversal drift.
 
   S0       = sum of every market's last price in the case (the checkpoint)
   k0       = 1 + LAMBDA * (1 / S0 - 1), clamped to [K0_MIN, K0_MAX]
@@ -16,8 +18,12 @@ applied to each market's starting price before the per-market diffusion.
   sigma1   = the sample standard deviation of 1-minute logit-price differences,
              over the market's own trailing WINDOW minutes of *unadjusted* history
              (or all of it, when the market has less), floored and capped
+  lag      = z[now] - z[now - REV_LOOKBACK]   (unadjusted logit-space move)
+  center(h)= z0 - REV_ALPHA * max(0, lag) * h ** H     (reversal drift; see below)
+  gamma    = clamp(SKEW_G0 - SKEW_G1 * x_adj, -SKEW_CAP, SKEW_CAP)   (level skew)
   spread(h)= sigma1 * h ** H           (h = minutes ahead, h = 1..horizon)
-  q_tau(h) = clamp(inv_logit(z0 + Phi^-1(tau) * spread(h)), 0, 1), rounded to 6dp
+  d_tau(h) = Phi^-1(tau) * spread(h), then widened by (1+gamma) if >=0 else (1-gamma)
+  q_tau(h) = clamp(inv_logit(center(h) + d_tau(h)), 0, 1), rounded to 6dp
 
 Why the cross-market term, briefly (see research/cross_market_analysis.py and
 research/run_sweep_xmarket.py + research/loco_xmarket.py for the full writeup):
@@ -64,10 +70,46 @@ research/run_sweep_xmarket.py + research/loco_xmarket.py for the full writeup):
   H in roughly [0.26, 0.34], so this is not a knife-edge fit, and remains the
   optimum after adding the cross-market term -- re-checked, not re-assumed).
 
-- A small drift term and fat-tailed (inflated 5%/95%) quantiles were both tried and
-  both made the backtested loss *worse* on average, so neither is used: pinball
-  loss is a proper scoring rule, and widening/skewing the forecast when the data
-  does not support it is a net loss, not a hedge.
+- A small drift term and fat-tailed (inflated 5%/95%) quantiles were both tried in
+  round 1/2 and made the backtested loss *worse* on average there -- those were a
+  constant, level-independent drift and a flat tail multiplier, with no empirical
+  basis. Round 3 revisits both, grounded this time in direct measurement:
+
+  * Level-dependent skew: partitioning 1-minute logit-price diffs across all 6
+    practice cases' markets by the *starting price level* shows markets below
+    about 0.15 have strong, robust (same sign in every one of the 6 practice
+    cases individually) *positive* skew -- rare large up-jumps are more extreme
+    than rare large down-moves -- while markets from about 0.15 to 0.5 show
+    equally robust *negative* skew, growing with price level. There is almost no
+    practice data above ~0.6 (these are long-shot-heavy candidate markets), so
+    SKEW_CAP bounds how far this is extrapolated toward 1, deliberately
+    conservative about a region we have not observed (see
+    research/skew_reversal_analysis.py).
+
+  * Short-term reversal: the correlation between a market's recent L-minute
+    logit move and its subsequent move is consistently negative (~-0.15 to
+    -0.30) across many lookback/horizon pairs pooled over all practice
+    markets, and -- unlike a transient bounce -- does not decay away over the
+    full 4-hour horizon. It is also clearly asymmetric: large recent upward
+    moves predict strong reversion; large recent downward moves predict almost
+    none. REV_ALPHA and REV_LOOKBACK are both set well below their raw
+    backtest-optimal values: the 6 practice cases are checkpoints 4 hours apart
+    on ONE continuous price history (same event, same start), so their
+    pre-checkpoint windows overlap almost entirely -- a leave-one-case-out
+    check here is weaker evidence of generalization than round 2's cross-market
+    lambda was, and the full-sample optimum (lookback ~120-150, alpha ~0.06-0.08)
+    showed much less stable, more case-dependent behavior (hurting 2 of 6 cases
+    meaningfully) than the damped values used here (lookback=45, alpha=0.03),
+    which improve 5 of 6 practice cases and only barely touch the 6th. See
+    research/zero_inflation_analysis.py, research/skew_reversal_analysis.py,
+    research/models_round3.py, research/run_sweep3.py and research/loco3.py for
+    the full investigation, including a third candidate -- an explicit
+    zero-inflation mixture (point mass at "no change" blended with the
+    continuous diffusion) -- that was tested and dropped: real, large,
+    independently-measured structure (P(unchanged) falls from ~0.88 at h=1 to
+    ~0.12 at h=240), but explicit mixture modeling of it was only neutral
+    (3 of 6 held-out cases) in leave-one-case-out testing, i.e. it did not add
+    anything beyond what the existing sub-diffusion exponent already captures.
 
 No network access, no randomness, no third-party packages: standard library only.
 """
@@ -98,6 +140,17 @@ XMARKET_LAMBDA = 0.30     # cross-market sum-to-one shrinkage weight (0 = round 
 K0_MIN = 0.5              # safety clamp on the per-case price-rescale factor k0,
 K0_MAX = 2.0              # guards against pathological S0 in future cases we never saw
 S0_FLOOR = 1e-3           # floor on the cross-sectional sum before taking 1/S0
+
+# -- round 3 additions (see docstring + research/ for how these were chosen) --
+SKEW_G0 = 0.10            # gamma(x) = clamp(SKEW_G0 - SKEW_G1 * x, -SKEW_CAP, SKEW_CAP)
+SKEW_G1 = 1.40            # level-dependent quantile skew: widens the upside tail
+SKEW_CAP = 0.35           # and narrows the downside when gamma > 0 (low x), and
+                          # vice versa for gamma < 0 (x above ~0.07); capped to avoid
+                          # extrapolating past the ~0-0.6 price range we have data for
+
+REV_ALPHA = 0.03          # short-term reversal drift strength (damped well below the
+REV_LOOKBACK = 45         # raw backtest optimum -- see docstring); minutes of lookback
+                          # used to measure the market's most recent logit move
 
 
 # ---------------------------------------------------------------------------
@@ -191,21 +244,56 @@ def cross_market_k0(markets, lam=XMARKET_LAMBDA):
     return max(K0_MIN, min(K0_MAX, k0))
 
 
+def skew_gamma(x, g0=SKEW_G0, g1=SKEW_G1, cap=SKEW_CAP):
+    """Level-dependent skew factor: positive (widen upside, narrow downside) for
+    low x, negative (widen downside, narrow upside) for higher x; see docstring."""
+    g = g0 - g1 * x
+    return max(-cap, min(cap, g))
+
+
+def recent_move(prices, lookback=REV_LOOKBACK):
+    """Market's own realized logit-space move over its trailing `lookback` minutes
+    (or everything it has, if shorter), from its *unadjusted* price history."""
+    n = len(prices)
+    L = min(lookback, n - 1)
+    if L < 1:
+        return 0.0
+    return logit(prices[-1]) - logit(prices[-1 - L])
+
+
 def forecast_market(prices, horizon, z_levels, k0=1.0):
     """The forecast for one market: `horizon` rows of len(z_levels) quantiles.
 
     `k0` is the case-wide cross-market rescale factor (see cross_market_k0): it
     nudges only the starting price used for z0, not the volatility estimate,
     which is still computed from this market's own unadjusted price history.
+
+    Round 3 adds two further corrections on top of round 2's center/spread:
+    a level-dependent skew of the quantile shape (gamma, from x_adj) and an
+    asymmetric reversal drift applied to the center, proportional to the size
+    of the market's own most recent upward move (not applied to downward
+    moves -- see docstring for why only one direction showed a robust effect).
     """
     x = current_price(prices)
     x_adj = min(1.0 - EPS, max(EPS, x * k0))
     z0 = logit(x_adj)
     sigma1 = estimate_sigma1(prices)
+    gamma = skew_gamma(x_adj)
+    lag = recent_move(prices)
+    signed_lag = max(0.0, lag)
     rows = []
     for h in range(1, horizon + 1):
         spread = sigma1 * (h ** H_EXPONENT)
-        rows.append([price6(inv_logit(z0 + z * spread)) for z in z_levels])
+        center = z0
+        if REV_ALPHA != 0.0 and signed_lag != 0.0:
+            center -= REV_ALPHA * signed_lag * (h ** H_EXPONENT)
+        row = []
+        for z in z_levels:
+            d = z * spread
+            if gamma != 0.0:
+                d = d * (1.0 + gamma) if d >= 0.0 else d * (1.0 - gamma)
+            row.append(price6(inv_logit(center + d)))
+        rows.append(row)
     return rows
 
 

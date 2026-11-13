@@ -110,6 +110,40 @@ def evaluate(model_fn, cases, realized, verbose=False):
             print(f"  {cid}: {per_case[cid]:.6f}")
     return mean_loss, per_case
 
+def evaluate_case_level(case_model_fn, cases, realized, verbose=False):
+    """case_model_fn(case_dict, horizon) -> dict mid -> list of 240 rows of 5 quantiles.
+
+    Unlike `evaluate`, this hands the whole case (all of its markets) to the
+    model function at once, so the model can use cross-market information
+    (e.g. the cross-sectional sum of current prices) before forecasting each
+    market individually. Used for round-2 cross-market-normalization variants.
+    """
+    grand_total = 0.0
+    grand_n = 0
+    per_case = {}
+    for cid, c in cases.items():
+        horizon = c["horizon_minutes"]
+        case_total = 0.0
+        case_n = 0
+        by_mid = case_model_fn(c, horizon)
+        for m in c["markets"]:
+            mid = m["id"]
+            if mid not in realized[cid]:
+                continue
+            q_rows = by_mid[mid]
+            t, n = score_forecast(realized[cid][mid], q_rows)
+            case_total += t
+            case_n += n
+        per_case[cid] = case_total / case_n
+        grand_total += case_total
+        grand_n += case_n
+    mean_loss = grand_total / grand_n
+    if verbose:
+        for cid in CASES:
+            print(f"  {cid}: {per_case[cid]:.6f}")
+    return mean_loss, per_case
+
+
 if __name__ == "__main__":
     cases = load_cases()
     hist = load_history()

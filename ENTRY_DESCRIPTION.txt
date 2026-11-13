@@ -1,1 +1,1 @@
-Forecasts each candidate's Yes price with a logit-space random walk whose spread uses each market's own trailing volatility and an empirically fit sub-diffusion exponent (h^0.3, not h^0.5), capturing the mean-reversion seen in these thin markets.
+Per-market logit-space sub-diffusive vol forecaster (h^0.3, not h^0.5) plus a damped cross-market sum-to-one shrinkage that nudges each market's starting price toward its case-wide renormalized value, backtested rather than forced to a full normalization.
